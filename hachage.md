@@ -1,6 +1,19 @@
-# Sécurité des mots de passe utilisateurs en PHP
+# Sécurité des mots de passe utilisateurs en PHP :lock:
 
-[source 1](https://openclassrooms.com/fr/courses/2644516-securisez-les-mots-de-passe-des-utilisateurs-avec-php) - [source 2](https://www.culture-informatique.net/cest-quoi-hachage/)
+## En résumé pour l'impatient :runner:
+
+<p style="background-color: grey">
+
+* On ne stocke pas en clair un mot de passe en base de données
+
+* On ne stocke pas non plus une version cryptée d'un mot de passe (on pourrait potentiellement le décrypter !)
+
+* On en stocke une version "hachée" (une _empreinte_ servant à identifier rapidement la donnée en clair)
+
+* On hache une information à l'aide de la fonction PHP `password_hash()` produisant alors un "hash" (le résultat d'un hachage) de cette information
+
+* On détermine si un "hash" correspond à une information en clair avec la fonction PHP `password_verify($passwordEnClair, $hashATester)`
+</p>
 
 ## I. Nécessité de sécuriser les mots de passe
 
@@ -249,3 +262,5 @@ Dans ce contexte, le fichier .htaccess est là pour vérifier que seule l'applic
 Avec ce système, si un hacker récupère notre bdd cherchant à récupérer les mots de passe utilisateurs, il devrait attaquer chaque salt par bruteforce pour chaque utilisateur. Dans le meilleur des cas (pour lui !), il ne pourrait récupérer que les mots de passe faibles. Ce vecteur d'attaque est trop gourmand en temps et en énergie, le hacker aura donc plutôt tendance à essayer une attaque par bruteforce directement sur le login du site... Mais dans ce cas, la responsabilité revient à l'utilisateur qui a un mot de passe trop faible et non pas à l'administrateur du site qui n'a pas subi de fuite de données.
 
 Avec un salt dynamique, tout est sécurisé par le mot de passe se trouvant sous la protection du .htaccess. Il est donc possible de partager le code source de l'application car tant que le mot de passe, lui, n'est pas partagé, le tout reste sécurisé.
+
+[source 1](https://openclassrooms.com/fr/courses/2644516-securisez-les-mots-de-passe-des-utilisateurs-avec-php) - [source 2](https://www.culture-informatique.net/cest-quoi-hachage/)
