@@ -12,11 +12,11 @@
 
 ## II. Chiffrement vs hachage
 
-Ces deux notions vont être explicitées par la suite mais dès àà présent, retenons que cryptage et hachage, c’est différent.
+Ces deux notions vont être explicitées par la suite mais dès à présent, retenons que cryptage et hachage, c’est différent.
 
 * Le but du cryptage (ou encore chiffrement) est de coder des données pour les rendre illisibles. Mais c’est aussi de permettre à quelqu’un possédant la clé et la méthode de déchiffrement de pouvoir décoder et donc pouvoir accéder aux informations en clair
 
-* Dans le hachage, on n'a pas accès aux données en clair. L’objectif est de leur associer une empreinte caractéristique
+* Dans le hachage, on n'a pas accès aux données en clair. L’objectif est de leur associer une empreinte caractéristique. Un hachage ne peut pas se "décoder" (en théorie !)
 
 ## III. Le chiffrement de données
 
@@ -182,7 +182,7 @@ Ressource : [convertissseur bits <-> caractères](http://extraconversion.com/fr/
 
 ### 1. La fonction password_hash()
 
-Les algorithmes de hash sont implémentés dans PHP via la fonction [password_hash()](https://secure.php.net/manual/fr/function.password-hash.php). Celle-ci crée un nouveau hachage en utilisant un algorithme de hachage fort et irréversible.
+Les algorithmes de hash sont implémentés dans PHP via la fonction native PHP [password_hash()](https://secure.php.net/manual/fr/function.password-hash.php). Celle-ci crée un nouveau hachage en utilisant un algorithme de hachage fort et irréversible.
 
 _Exemple :_ hash de la string 'Bonjour' avec l'option PASSWORD_DEFAULT ( utilisation de l'algorithme bcrypt)
 
@@ -192,7 +192,19 @@ $empreinteDeBonjour = password_hash('Bonjour', PASSWORD_DEFAULT);
 ?>
 ```
 
-### 2. Une utilisation pratique des hash en PHP
+C'est cette fonction que l'on applique à un mot de passe en clair dans un formulaire de signup, générant ainsi un hash à stocker en base de données.
+
+La fonction `password_hash()` retourne toutes les informations nécessaires pour vérifier le hachage a posteriori.
+
+### 2. La fonction password_verify()
+
+Attention, un hash différent sera généré à chaque nouvel appel de la fonction `password_hash()` sur un même mot de passe en clair !!! Pour savoir alors si un hash donné correspond à tel mot de passe en clair, on utilise la fonction native PHP [password_verify()](http://php.net/manual/fr/function.password-verify.php).
+
+Cette fonction prend deux arguments : `password_verify($passwordEnClair, $hashATester)`
+
+C'est ainsi que l'on teste le mot de passe saisi en clair par l'utilisateur dans un formulaire de signin pour savoir s'il correspond au hash stocké en base de données lors du signup.
+
+### 3. En pratique
 
 On peut s'en servir dans les systèmes d'authentification :
 
@@ -202,15 +214,13 @@ On peut s'en servir dans les systèmes d'authentification :
 
 **Avantage :** le mot de passe n'est pas stocké en clair dans la bdd.
 
-**Inconvénient :** pas assez sécurisé du fait des collisions possibles selon la fonction de hachage
+**Inconvénient :** peu ou pas avec les méthodes de hachage actuelles (d'anciennes méthodes type md5 n'étaient pas assez sécurisées du fait de collisions possibles et de la présence de base de données en ligne en mode attaques dictionnaire ou bruteforce telles [lien décrypteur md5online](https://www.md5online.fr/))
 
-### 3. La sécurité d'un hash
+### 4. Pour aller plus loin - Les grains de sel (salt)
 
-Comme vu ci-dessus, si l'on possède l'empreinte d'un hash, on peut éventuellement remonter à la donnée en clair via des bases de données en ligne générées à partir d'attaques dictionnaire ou bruteforce ([lien décrypteur md5online](https://www.md5online.fr/)).
+#### a. Généralités
 
-### 4. Les grains de sel (salt)
-
-Pour éviter la problématique précédente, on utilise un **salt**. C'est un préfixe ou un suffixe que l'on ajoute au mot de passe en clair avant de le hacher, diminuant ainsi la probabilité que cette entrée ait été indexée dans une base de données telle md5online.
+Pour éviter la problématique précédente des collisions, on utilise un **salt**. C'est un préfixe ou un suffixe que l'on ajoute au mot de passe en clair avant de le hacher, diminuant ainsi la probabilité que cette entrée ait été indexée dans une base de données telle md5online.
 
 _Exemple :_ string 'Bonjour' à laquelle on a apposé le salt `1t5MyH45h` en préfixe, ce qui donne '1t5MyH45h_Bonjour'.
 
@@ -222,9 +232,11 @@ Fonctionnement du système d'enregistrement avec salt statique :
 
 Il est alors plus difficile de décrypter un tel mot de passe à partir de son empreinte, mais ce n'est pas impossible pour autant (bruteforce attaque). D'où l'idée de générer un salt de façon dynamique...
 
-### 5. Un salt dynamique
+#### b. Un salt dynamique à la mano
 
 Afin de limiter les failles par bruteforce, on utilise un salt différent (= dynamique) pour chaque utilisateur. Cela peut être son pseudo chiffré par un algorithme et une clé commune à tous les utilisateurs (/!\ ne pas utiliser l'id de l'utilisateur, trop commun !!!)
+
+**Important :**  avec les méthodes actuelles de hachage via les fonctions `password_hash()` et `password_verify()`, PHP gère lui-même l'application d'un sel dynamique, inutile de s'en soucier à la mano, on ne code donc pas de sel, PHP le fait pour nous !
 
 Fonctionnement du système d'enregistrement avec salt dynamique :
 
